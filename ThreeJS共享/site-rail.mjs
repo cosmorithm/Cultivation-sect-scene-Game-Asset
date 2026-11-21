@@ -9,7 +9,14 @@ export function pillarCap(k,x,y,z,scale=1,metal=true){
 export function pillar(k,x,y,z,s=1,cap=true){
   for(const [w,h,dy,m] of [[.44,.10,0,'cool'],[.4,.055,.1,'light'],[.32,.12,.155,'stone'],[.27,.65,.275,'stone'],[.31,.055,.925,'cool']])
     k.box(m,x,y+s*(dy+h/2),z,w*s,h*s,w*s);
-  k.box('relief',x,y+.576*s,z+.139*s,.194*s,.42*s,.014*s);
+  // Each shaft has a recessed field inside a fine raised four-sided frame.
+  for(let face=0;face<4;face++){
+    const a=face*Math.PI/2,nx=Math.sin(a),nz=Math.cos(a),surface=.139*s;
+    const fx=x+nx*surface,fz=z+nz*surface;
+    k.box('cool',fx,y+.584*s,fz,.179*s,.443*s,.014*s,a);
+    k.box('stone',fx+nx*.008*s,y+.584*s,fz+nz*.008*s,.148*s,.397*s,.016*s,a);
+    k.box('light',fx+nx*.010*s,y+.792*s,fz+nz*.010*s,.160*s,.021*s,.025*s,a);
+  }
   if(cap)pillarCap(k,x,y+.975*s,z,s);
 }
 export function panel(k,cx,y,z,w,h,d,angle=0,depthDetail=true){
@@ -20,6 +27,16 @@ export function panel(k,cx,y,z,w,h,d,angle=0,depthDetail=true){
     k.box('cool',x,y,zz,w*.94,h*.75,.014,angle);
     reliefCloud(k,x+Math.sin(angle)*.013*side,y,zz+Math.cos(angle)*.013*side,w*.87,h*.60,angle);
     if(depthDetail){
+      const radius=h*.226;
+      const detailZ=.026*side;
+      const at=(xx,yy,dd)=>[x+xx*Math.cos(angle)+Math.sin(angle)*dd,y+yy,zz-xx*Math.sin(angle)+Math.cos(angle)*dd];
+      const circle=Array.from({length:25},(_,i)=>at(Math.cos(i*Math.PI/12)*radius,Math.sin(i*Math.PI/12)*radius,detailZ));
+      k.rod('light',circle,Math.max(.007,h*.032),6,false);
+      for(let j=0;j<4;j++){
+        const a=j*Math.PI/2;
+        const petal=[[0,0],[.43,.22],[.7,.08],[.59,-.18],[.26,-.13]];
+        k.rod('relief',petal.map(([u,v])=>at(radius*(u*Math.cos(a)-v*Math.sin(a)),radius*(u*Math.sin(a)+v*Math.cos(a)),detailZ)),h*.017,5);
+      }
       for(const sign of [-1,1])k.box('light',x,y+sign*h*.44,zz,w,.043,.03,angle);
     }
   }

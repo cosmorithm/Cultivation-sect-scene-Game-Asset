@@ -7,3 +7,5 @@ export function buildAsset(T) {
   for(const x of [-1,1])k.box('cool',x*1.115,.26,0,.12,.12,.076);
   return k.finish('D08');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

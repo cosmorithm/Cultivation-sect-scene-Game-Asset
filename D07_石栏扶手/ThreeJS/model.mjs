@@ -10,3 +10,5 @@ export function buildAsset(T) {
   for(const side of [-1,1])reliefCloud(k,0,.09,side*.095,1.85,.14,0);
   return k.finish('D07');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

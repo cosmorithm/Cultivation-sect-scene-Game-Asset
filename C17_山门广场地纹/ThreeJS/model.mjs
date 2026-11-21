@@ -6,3 +6,5 @@ export function buildAsset(T) {
   decalDisc(k, {radius:3.1,style:'cloud',thickness:.085});
   return k.finish('C17');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82, direction:[.44,1.61,.68]};

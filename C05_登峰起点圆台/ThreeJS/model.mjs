@@ -6,3 +6,5 @@ export function buildAsset(T) {
   discLanding(k, {radius:5.1,height:1.20,arms:[0,Math.PI],armWidth:3.1,lamps:true,pattern:'cloud'});
   return k.finish('C05');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

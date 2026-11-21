@@ -1,4 +1,4 @@
-import {workshop} from '../../ThreeJS共享/site-craft.mjs';
+import {workshop,reliefCloud} from '../../ThreeJS共享/site-craft.mjs';
 import {pillar} from '../../ThreeJS共享/site-rail.mjs';
 
 export function buildAsset(T) {
@@ -15,5 +15,13 @@ export function buildAsset(T) {
       k.box('relief',x,.292+j*.235,side*.217,.87,.218,.015);
     }
   }
+  for(const sign of [-1,1]){
+    k.box('cool',0,.56,sign*.231,3.13,.40,.015);
+    reliefCloud(k,0,.55,sign*.253,2.94,.29);
+    k.box('light',0,.765,sign*.243,3.20,.034,.028);
+    k.box('light',0,.347,sign*.243,3.20,.035,.028);
+  }
   return k.finish('D10');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

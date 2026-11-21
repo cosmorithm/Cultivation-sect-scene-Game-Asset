@@ -6,3 +6,5 @@ export function buildAsset(T) {
   wallPanel(k,3.4,.66,.135);
   return k.finish('C20');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

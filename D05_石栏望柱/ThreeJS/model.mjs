@@ -12,3 +12,5 @@ export function buildAsset(T) {
   k.box('light',0,.99,0,.35,.048,.35);
   return k.finish('D05');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

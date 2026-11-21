@@ -10,3 +10,5 @@ export function buildAsset(T) {
   });
   return k.finish('C01');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82, direction:[1.55,.55,.63], reverseDirection:[-1.4,.47,-.75]};

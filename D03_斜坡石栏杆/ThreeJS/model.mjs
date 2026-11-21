@@ -7,3 +7,5 @@ export function buildAsset(T) {
   railing(k,[0,.5,1].map(t=>[run*(t-.5),rise*t,0]),{s:1});
   return k.finish('D03');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

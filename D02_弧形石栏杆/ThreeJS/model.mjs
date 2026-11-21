@@ -11,3 +11,5 @@ export function buildAsset(T) {
   railing(k,path,{s:1,panels:true});
   return k.finish('D02');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

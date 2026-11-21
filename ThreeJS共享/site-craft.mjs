@@ -2,34 +2,45 @@
 export function workshop(T) {
   const root = new T.Group(), materials = {};
   const palette = {
-    stone: [0xd6c9b5,.88], light: [0xe7dcc6,.81], cool: [0xb6ada3,.87],
-    joint: [0x8f877d,.94], shadow: [0x6b6665,.91], relief: [0xe1d3b8,.79],
-    gold: [0xb89150,.42,.56], bronze:[0x715338,.54,.49], red:[0x884a38,.58],
+    stone: [0xb2ada0,.82], light: [0xc8c1ae,.76], cool: [0x939a93,.87],
+    joint: [0x747b74,.94], shadow: [0x6b6665,.91], relief: [0xcbbfa6,.76],
+    gold: [0x95774c,.48,.65], bronze:[0x544a3b,.61,.55], red:[0x884a38,.58],
     wood:[0x593a2d,.73], darkWood:[0x392c27,.68], blue:[0x406571,.4,.1],
-    teal:[0x537b7e,.45,.08], silk:[0xe8d7b0,.85], paper:[0xffcb72,.53],
-    motif:[0xc29855,.59,.23], charcoal:[0x526370,.77]
+    teal:[0x537b7e,.45,.08], silk:[0xe8d7b0,.85], paper:[0xffcc82,.63],
+    motif:[0xa48657,.56,.42], charcoal:[0x526370,.77]
   };
   for (const [k,[color,roughness,metalness=0]] of Object.entries(palette)) {
     materials[k]=new T.MeshStandardMaterial({name:k,color,roughness,metalness});
   }
   materials.paper.emissive.setHex(0xffae43);
-  materials.paper.emissiveIntensity=.46;
+  materials.paper.emissiveIntensity=.26;
   const stoneKeys = new Set(['stone','light','cool','joint','relief']);
   // Small flecks on broad honed surfaces keep the motif legible at a distance.
-  const rockPixels=new Uint8Array(64*64*4);
+  const size=128, rockPixels=new Uint8Array(size*size*4),paperPixels=rockPixels.slice();
   let seed=1847;
-  for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
     seed=(Math.imul(seed,1664525)+1013904223)>>>0;
-    const n=(seed>>>16)/65535;
-    const cloud=Math.sin(2*Math.PI*x/64+1.8*Math.sin(2*Math.PI*y/64));
-    const v=Math.round(240+7*cloud+12*(n-.5)-(n<.045?16:0)), i=(y*64+x)*4;
-    rockPixels.set([v,v,Math.min(255,v+1),255],i);
+    const noise=(seed>>>16)/65535,u=x/size,v=y/size,tau=Math.PI*2;
+    const vein=Math.sin(tau*(2*u+v)+1.8*Math.sin(tau*(u-2*v))+.35*Math.sin(tau*(7*u+v)));
+    const mica=(1-Math.abs(vein))**14;
+    const fall=Math.sin(tau*(3*u-2*v+.16*Math.sin(tau*5*v)));
+    const value=Math.round(230+9*fall+8*vein+15*(noise-.5)+8*mica-(noise<.045?22:0));
+    const i=(y*size+x)*4;
+    rockPixels.set([value,Math.min(255,value+1),Math.min(255,value+2),255],i);
+    const glow=(Math.sin(Math.PI*u)*Math.sin(Math.PI*v))**.52;
+    const fibre=(Math.sin(tau*u*23)*.5+noise*.5)*7;
+    paperPixels.set([238+14*glow,160+82*glow+fibre,77+135*glow+fibre,255],i);
   }
-  const tex=new T.DataTexture(rockPixels,64,64,T.RGBAFormat);
-  tex.name='Honed-limestone-grain';tex.wrapS=tex.wrapT=T.RepeatWrapping;
-  tex.colorSpace=T.SRGBColorSpace;tex.magFilter=T.LinearFilter;tex.minFilter=T.LinearMipmapLinearFilter;
-  tex.generateMipmaps=true;tex.needsUpdate=true;
+  function materialMap(data,name,repeat){
+    const t=new T.DataTexture(data,size,size,T.RGBAFormat);
+    t.name=name;t.wrapS=t.wrapT=repeat?T.RepeatWrapping:T.ClampToEdgeWrapping;
+    t.colorSpace=T.SRGBColorSpace;t.magFilter=T.LinearFilter;t.minFilter=T.LinearMipmapLinearFilter;
+    t.generateMipmaps=true;t.needsUpdate=true;return t;
+  }
+  const tex=materialMap(rockPixels,'Honed limestone • bedding and mica',true);
   for(const k of stoneKeys)materials[k].map=tex;
+  materials.paper.map=materialMap(paperPixels,'Silk lantern shade',false);
+  materials.paper.emissiveMap=materials.paper.map;
   const buckets=new Map(), v=new T.Vector3(), normal=new T.Vector3(), nMatrix=new T.Matrix3();
   const Q=new T.Quaternion(), one=new T.Vector3(1,1,1);
   const vector=p=>new T.Vector3(...p);
@@ -52,9 +63,43 @@ export function workshop(T) {
     else for(let i=0;i<p.count;i++)b.index.push(base+i);
   }
   const cube=new T.BoxGeometry();
+  const cutCache=new Map();
+  function bevelledBox(w,h,d) {
+    const key=[w,h,d].map(v=>v.toFixed(4)).join('/');
+    if(cutCache.has(key))return cutCache.get(key);
+    const half=[w/2,h/2,d/2],chamfer=Math.min(.023,Math.min(w,h,d)*.077);
+    const pos=[],index=[];
+    function corner(sign,face){
+      return sign.map((v,i)=>v*(half[i]-(i===face?0:chamfer)));
+    }
+    function poly(vertices,out){
+      const v0=new T.Vector3(...vertices[0]),v1=new T.Vector3(...vertices[1]).sub(v0),v2=new T.Vector3(...vertices[2]).sub(v0);
+      if(v1.cross(v2).dot(new T.Vector3(...out))<0)vertices.reverse();
+      const start=pos.length/3;
+      for(const v of vertices)pos.push(...v);
+      for(let i=1;i<vertices.length-1;i++)index.push(start,start+i,start+i+1);
+    }
+    for(let axis=0;axis<3;axis++)for(const faceSign of [-1,1]){
+      const face=[[1,1],[-1,1],[-1,-1],[1,-1]].map(([a,b])=>{
+        const s=[0,0,0];s[axis]=faceSign;s[(axis+1)%3]=a;s[(axis+2)%3]=b;return corner(s,axis);
+      });
+      const n=[0,0,0];n[axis]=faceSign;poly(face,n);
+    }
+    for(let axis=0;axis<3;axis++)for(const a of [-1,1])for(const b of [-1,1]){
+      const i=(axis+1)%3,j=(axis+2)%3,n=[0,0,0];n[i]=a;n[j]=b;
+      const lo=[...n],hi=[...n];lo[axis]=-1;hi[axis]=1;
+      poly([corner(lo,i),corner(hi,i),corner(hi,j),corner(lo,j)],n);
+    }
+    for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){
+      const n=[x,y,z];poly([corner(n,0),corner(n,1),corner(n,2)],n);
+    }
+    const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));
+    geo.setIndex(index);geo.computeVertexNormals();cutCache.set(key,geo);return geo;
+  }
   function box(k,x,y,z,w,h,d,ry=0,rz=0,rx=0){
     const q=new T.Quaternion().setFromEuler(new T.Euler(rx,ry,rz,'YXZ'));
-    add(cube,k,x,y,z,q,new T.Vector3(w,h,d));
+    if(stoneKeys.has(k)&&Math.min(w,h,d)>.065)add(bevelledBox(w,h,d),k,x,y,z,q);
+    else add(cube,k,x,y,z,q,new T.Vector3(w,h,d));
   }
   function cylinder(k,x,y,z,top,bottom,h,segments=24,ry=0){
     const q=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),ry);
@@ -95,12 +140,22 @@ export function workshop(T) {
 
 export function tileStrip(k,corners,bottom,key='stone'){
   // Vertices run from the approach towards the exit, then across the deck.
-  const [a,b,c,d]=corners;
-  const ring=[a,b,c,d];
-  const p=[...ring,...ring.map(v=>[v[0],v[1]-bottom,v[2]])];
-  const orient=(b[2]-a[2])*(d[0]-a[0])-(b[0]-a[0])*(d[2]-a[2]);
-  const faces=[[0,1,2],[0,2,3],[6,5,4],[7,6,4],[4,5,1],[4,1,0],[5,6,2],[5,2,1],[6,7,3],[6,3,2],[7,4,0],[7,0,3]];
-  if(orient<0)for(const f of faces)f.reverse();
+  const ring=corners,center=ring.reduce((sum,p)=>sum.map((v,i)=>v+p[i]/4),[0,0,0]);
+  const shortest=Math.min(...ring.map((p,i)=>Math.hypot(p[0]-ring[(i+1)%4][0],p[2]-ring[(i+1)%4][2])));
+  const bevel=Math.min(.016,shortest*.075,bottom*.18);
+  const top=ring.map(p=>{
+    const vx=center[0]-p[0],vz=center[2]-p[2],len=Math.max(.001,Math.hypot(vx,vz));
+    return [p[0]+bevel*vx/len,p[1],p[2]+bevel*vz/len];
+  });
+  const p=[...top,...ring.map(v=>[v[0],v[1]-bevel,v[2]]),...ring.map(v=>[v[0],v[1]-bottom,v[2]])];
+  const [a,b,,d]=ring;
+  const orientation=(b[2]-a[2])*(d[0]-a[0])-(b[0]-a[0])*(d[2]-a[2]);
+  const faces=[[0,1,2],[0,2,3],[10,9,8],[11,10,8]];
+  for(let row=0;row<2;row++)for(let i=0;i<4;i++){
+    const j=(i+1)%4,up=row*4,low=up+4;
+    faces.push([low+i,low+j,up+j],[low+i,up+j,up+i]);
+  }
+  if(orientation<0)for(const f of faces)f.reverse();
   k.mesh(key,p,faces);
 }
 
@@ -132,6 +187,14 @@ export function rosette(k,cx,y,cz,r,design='cloud'){
     const form=design==='lotus'?[[.08,0],[.30,.16],[.55,.10],[.64,0],[.43,-.13],[.21,-.12],[.08,0]]:[[.09,0],[.3,.19],[.48,.22],[.58,.10],[.55,-.005],[.46,-.06],[.43,0],[.46,.065]];
     const pts=form.map(([x,z])=>[cx+r*(x*Math.cos(a)-z*Math.sin(a)),y+.015*r,cz+r*(x*Math.sin(a)+z*Math.cos(a))]);
     k.rod('motif',pts,r*.014,6);
+  }
+  // Engraved petal border, split into individual lozenges at the paving joints.
+  for(let i=0;i<lobes*4;i++){
+    const a=i*(Math.PI*2)/(lobes*4),half=(Math.PI*2)/(lobes*4)*.36;
+    const point=(t,rr)=>[cx+r*rr*Math.cos(t),y+.009*r,cz+r*rr*Math.sin(t)];
+    const diamond=[point(a-half,.822),point(a,.848),point(a+half,.822),point(a,.796)];
+    if(i%2===0)k.mesh('cool',diamond,[[0,2,1],[0,3,2]]);
+    else k.rod('relief',[...diamond,diamond[0]],r*.0046,5,false);
   }
   ring(k,cx,y+.004,cz,r*.075,r*.025,'motif');
 }

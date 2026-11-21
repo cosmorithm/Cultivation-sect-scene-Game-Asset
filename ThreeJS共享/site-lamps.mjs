@@ -20,15 +20,35 @@ export function lampHead(k,x,y,z,r=1,tall=1){
       k.rod('teal',Array.from({length:6},(_,j)=>vector(side,i/8,j/5*.965)),r*.014,5);
     }
   }
-  const s=.552*r; k.box('paper',x,y+tall*.49,z,2*s,tall*.89,2*s);
+  const s=.552*r;
+  // Recess the silk behind a lacquer frame. Each face has a second brass bead,
+  // hanging cloud spandrels and a turned centre boss.
+  k.box('paper',x,y+tall*.49,z,2*s,tall*.84,2*s);
   for(const h of [.03,.93])k.box('bronze',x,y+tall*h,z,1.47*r,tall*.10,1.47*r);
-  for(const dx of [-1,1])for(const dz of [-1,1])
-    k.box('wood',x+dx*s,y+tall*.5,z+dz*s,.115*r,tall,.115*r);
-  const diamond=[[0,.36],[.42,.50],[0,.70],[-.42,.50],[0,.36]];
+  for(const h of [.084,.886])k.box('gold',x,y+tall*h,z,1.35*r,tall*.024,1.35*r);
+  k.box('wood',x,roofBase-.018*r,z,r*1.68,.085*r,r*1.68);
+  for(const dx of [-1,1])for(const dz of [-1,1]){
+    k.box('wood',x+dx*s,y+tall*.5,z+dz*s,.129*r,tall,.129*r);
+    for(const dy of [.125,.848])k.box('gold',x+dx*s,y+tall*dy,z+dz*s,.154*r,.047*r,.154*r);
+  }
   for(let side=0;side<4;side++){
     const a=side*Math.PI/2;
-    const coords=diamond.map(([dx,dy])=>[x+dx*r*Math.cos(a)+(s+.012)*Math.sin(a),y+dy*tall,z+(s+.012)*Math.cos(a)-dx*r*Math.sin(a)]);
-    k.rod('gold',coords,.025*r,5,false);
+    const point=(dx,dy,push=0)=>[x+dx*r*Math.cos(a)+(s+.020+push)*Math.sin(a),y+dy*tall,z+(s+.020+push)*Math.cos(a)-dx*r*Math.sin(a)];
+    const line=(key,arr,radius)=>k.rod(key,arr.map(q=>point(...q)),radius*r,6,false);
+    for(const sign of [-1,1]){
+      line('bronze',[[sign*.45,.16],[sign*.45,.83]],.025);
+      line('bronze',[[sign*.51,.78],[sign*.31,.78],[sign*.31,.85]],.034);
+      line('bronze',[[sign*.50,.23],[sign*.36,.23],[sign*.36,.15]],.029);
+      line('gold',[[sign*.47,.72],[sign*.37,.71],[sign*.26,.62],[sign*.20,.62]],.016);
+    }
+    for(const dy of [.139,.855])line('bronze',[[-.51,dy],[.51,dy]],.029);
+    line('bronze',[[0,.274],[.38,.50],[0,.725],[-.38,.50],[0,.274]],.041);
+    line('gold',[[0,.308],[.308,.50],[0,.691],[-.308,.50],[0,.308]],.017);
+    const rosette=Array.from({length:33},(_,i)=>{
+      const t=Math.PI*2*i/32,rad=.102+.023*Math.cos(4*t);
+      return point(rad*Math.cos(t),.50+rad*r/tall*Math.sin(t),.008);
+    });
+    k.rod('gold',rosette,r*.018,6,false);
   }
   k.lathe('gold',x,roofBase+r*.63,z,[[0,0],[r*.13,0],[r*.12,.12*r],[r*.047,.16*r],[r*.074,.24*r],[0,.40*r]],12);
 }

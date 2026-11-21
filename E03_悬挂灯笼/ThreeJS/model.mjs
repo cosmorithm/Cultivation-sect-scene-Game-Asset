@@ -14,3 +14,5 @@ export function buildAsset(T) {
   k.box('gold',0,1.577,0,.28,.035,.25);
   return k.finish('E03');
 }
+
+export const presentation = {background:0xc5cece, floorColor:0x8f9791, studioLightScale:.79};

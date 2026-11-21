@@ -14,5 +14,12 @@ export function buildAsset(T) {
   k.rod('gold',[[0,3.22,0],[.25,3.46,0]],.02,8,false);
   for(const x of [.31,.86])k.add(new T.TorusGeometry(.048,.009,7,20),'bronze',x,3.433,0);
   k.cylinder('gold',arm,3.48,0,.065,.065,.085,8);
+  for(const x of [.11,.22,.95]){
+    const q=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),Math.PI/2);
+    k.add(new T.CylinderGeometry(.053,.053,.041,16),'bronze',x,3.48,0,q);
+  }
+  for(const ringY of [.789,3.19])k.lathe('bronze',0,ringY,0,[[0,0],[.096,0],[.107,.022],[.100,.043],[0,.043]],16);
   return k.finish('E04');
 }
+
+export const presentation = {background:0xc5cece, floorColor:0x8f9791, studioLightScale:.79};

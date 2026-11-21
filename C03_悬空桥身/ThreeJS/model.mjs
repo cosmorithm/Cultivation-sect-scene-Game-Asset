@@ -9,3 +9,5 @@ export function buildAsset(T) {
   });
   return k.finish('C03');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

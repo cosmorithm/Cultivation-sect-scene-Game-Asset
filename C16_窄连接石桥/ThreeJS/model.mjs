@@ -9,3 +9,5 @@ export function buildAsset(T) {
     standingLamp(k,x,.74,z,{height:1.65,shade:.24,body:.36});
   return k.finish('C16');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82, direction:[1.45,.60,.74]};

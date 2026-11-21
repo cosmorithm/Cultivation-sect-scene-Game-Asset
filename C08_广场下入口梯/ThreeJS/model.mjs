@@ -6,3 +6,5 @@ export function buildAsset(T) {
   steps(k, {width:4.8,count:20,rise:.18,going:.31,landing:1.25,curb:.30,rails:true,cheeks:true,lamps:true});
   return k.finish('C08');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

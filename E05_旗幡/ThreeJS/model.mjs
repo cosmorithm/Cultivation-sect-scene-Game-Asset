@@ -33,3 +33,5 @@ export function buildAsset(T) {
   }
   return k.finish('E05');
 }
+
+export const presentation = {background:0xc5cece, floorColor:0x8f9791, studioLightScale:.79, direction:[.37,.15,1.7]};

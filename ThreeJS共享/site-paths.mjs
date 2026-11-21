@@ -6,8 +6,17 @@ export function steps(k,{width,count,rise,going,landing=1,curb=.23,rails=false,l
   const run=count*going,front=run/2,top=count*rise;
   for(let i=0;i<count;i++){
     const y=(i+1)*rise,z=front-(i+.5)*going;
-    k.box(i%5===3?'cool':'stone',0,y/2,z,width,y,going+.004);
-    k.box('light',0,y-.026,z+going/2-.021,width+.012,.052,.087);
+    // Bedding plane, staggered split treads, and a pencil shadow under the projecting nose.
+    k.box('cool',0,(y-.046)/2,z,width,y-.046,going+.003);
+    const stones=Math.max(2,Math.round(width/1.5)),cuts=[-width/2];
+    for(let j=1;j<stones;j++)cuts.push(width*(j/stones-.5)+(i%2?.20:-.20)*width/stones);
+    cuts.push(width/2);
+    for(let j=0;j<stones;j++){
+      const cx=(cuts[j]+cuts[j+1])/2,span=cuts[j+1]-cuts[j]-.016;
+      k.box((i*3+j)%11===4?'cool':'stone',cx,y-.035,z,span,.070,going+.014);
+      k.box('light',cx,y-.027,z+going/2-.014,span,.054,.063);
+    }
+    k.box('joint',0,y-.075,z+going/2+.002,width-.038,.017,.009);
     for(const end of [-1,1]){
       k.box('relief',end*(width/2+.055),y*.5+.053,z,curb,y+.106,going+.003);
     }
@@ -19,6 +28,11 @@ export function steps(k,{width,count,rise,going,landing=1,curb=.23,rails=false,l
     const x=sign*(width/2+.055);
     k.bar('light',[x,.12,front],[x,top+.14,-run/2],curb+.076,.12);
     if(cheeks){
+      const outside=x+sign*(curb*.5+.039),runs=Math.max(1,Math.floor(run/2.05));
+      for(let j=0;j<runs;j++){
+        const t=(j+.5)/runs,along=front-t*run,centerY=.10+top*t*.57,available=top*t*.43;
+        if(available>.22)reliefCloud(k,outside,centerY,along,Math.min(1.7,run/runs*.80),Math.min(.52,available),-sign*Math.PI/2);
+      }
       k.bar('cool',[x,.21,front],[x,top+.25,-run/2],curb+.17,.22);
       k.bar('light',[x,.35,front],[x,top+.41,-run/2],curb+.27,.10);
     }

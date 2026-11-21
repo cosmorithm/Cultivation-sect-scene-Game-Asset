@@ -7,3 +7,5 @@ export function buildAsset(T) {
   railing(k,points,{s:1,panels:true});
   return k.finish('D04');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82};

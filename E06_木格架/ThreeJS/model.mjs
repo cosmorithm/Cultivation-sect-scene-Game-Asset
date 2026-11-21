@@ -14,5 +14,14 @@ export function buildAsset(T) {
   for(const y of [.28,.57,.87,1.17,1.45])k.box('wood',0,y,0,w,.073,.104);
   for(let i=0;i<6;i++)k.box('red',(i-2.5)*.32,.86,0,.061,1.20,.082);
   for(const x of [-1,1])k.box('gold',x*.11,1.46,.061,.095,.033,.023);
+  for(const x of [-w/2,w/2]){
+    for(const y of [.30,.40,1.31,1.41])k.box('bronze',x,y,0,.167,.023,.199);
+    for(const y of [.28,1.45]){
+      const q=new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),Math.PI/2);
+      k.add(new T.CylinderGeometry(.025,.028,.016,10),'gold',x,y,.101,q);
+    }
+  }
   return k.finish('E06');
 }
+
+export const presentation = {background:0xc5cece, floorColor:0x8f9791, studioLightScale:.79};

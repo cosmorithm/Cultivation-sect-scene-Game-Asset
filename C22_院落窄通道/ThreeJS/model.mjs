@@ -6,3 +6,5 @@ export function buildAsset(T) {
   curvedDeck(k, {path:[[0,0,5.8],[0,0,2.3],[0,.1,.9],[0,.78,-.85],[0,.8,-2.6],[0,.8,-5.9]],width:1.73,depth:.28,steps:true,n:26,rails:'both'});
   return k.finish('C22');
 }
+
+export const presentation = {background:0xc9d2d1, floorColor:0x929b95, studioLightScale:.82, direction:[.72,.95,1.55]};
